@@ -8,10 +8,11 @@ Vsaka povezava bo določena z:
 * letalsko družbo
 * frekvenco 
 * obdobje v katerem se pojavlja
+
 Naredila bom tudi primerjavo med povezavami enega in drugega letališča.
 ## Delovne hipoteze:
-Ali je res, da je več letov ob koncu leta (za čas praznikov)?
-Kateri dan v tednu je največ letov?
-Katero od letališč ponuja več destinacij in kateri ima večje število letov na teden kot drugi?
-Katero letališče ima več letov v Severno Ameriko?
-Ali so najbolj pogosti notranji leti (znotraj Italije)?
+* Ali je res, da je več letov ob koncu leta (za čas praznikov)?
+* Kateri dan v tednu je največ letov?
+* Katero od letališč ponuja več destinacij in kateri ima večje število letov na teden kot drugi?
+* Katero letališče ima več letov v Severno Ameriko?
+* Ali so najbolj pogosti notranji leti (znotraj Italije)?
