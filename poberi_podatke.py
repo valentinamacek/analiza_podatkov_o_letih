@@ -59,12 +59,12 @@ def shrani_venezia():
         datoteka = f'venezia/{stran}.html'
         shrani_spletno_stran(url, datoteka)
         stran+=1    
-
+shrani_venezia()
 def shrani_bergamo():
     url = 'https://www.milanbergamoairport.it/en/seasonal-flights-timetable/'
     datoteka = 'bergamo/frontpage.html'
     shrani_spletno_stran(url, datoteka)
-
+shrani_bergamo()
 def shrani_destinacije_bergamo():
     dat = 'bergamo/frontpage.html'
     prva_stran_vsebina = vsebina_datoteke(dat)
