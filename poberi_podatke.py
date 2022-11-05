@@ -3,6 +3,7 @@ import requests
 import os
 import sys
 import re
+from datetime import datetime
 
 ST_STRANI = 109
 PARI = [('11', '2022'),('12', '2022'), ('01', '2023'), ('02', '2023'), ('03', '2023')]
@@ -14,7 +15,7 @@ vzorec_leta = re.compile(
     r'<tr>.*?<td>(?P<letalo>.*?)</td>.*?'
     r'<td>(?P<druzba>.*?)</td>.*?'
     r'<td>(?P<destinacija>.*?)</td>.*?'
-    r'<td>(?P<od>.*?)<br>(?P<do>.*?)</td>.*?'
+    r'<td>FROM (?P<od>.*?)<br>TO (?P<do>.*?)</td>.*?'
     r'<td>(?P<dnevi>.*?)</td>.*?'
     r'<td>(?P<odhod>.*?)</td>.*?'
     r'<td>(?P<prihod>.*?)</td>.*?</tr>',
@@ -107,9 +108,9 @@ def shrani_destinacije_bergamo():
             shrani_spletno_stran(url, dat)
             vsebina = vsebina_datoteke(dat)
             for let_najdba in bvzorec_leta.finditer(vsebina):
-                let = let_najdba.groupdict()
+                let = podatki_o_letu_izboljsaj(let_najdba.groupdict())
                 leti.append(let)
-    print(leti)
+    return leti
 
 
 
@@ -173,13 +174,76 @@ def ustvari_slovar_datumov():
                         k = 0
     return datumi
 
+def podatki_o_letu_izboljsaj(slovar_leta):
+    t_odhod = datetime.strptime(slovar_leta['odhod'], "%H:%M")
+    t_prihod = datetime.strptime(slovar_leta['prihod'], "%H:%M")
+    delta = t_prihod - t_odhod
+    cas = (int(delta.total_seconds()) // 3600 , int((delta.total_seconds() % 3600) // 60)) 
+    slovar_leta['cas'] = f'{cas[0]}:{cas[1]}'
+
+def razbij_na_datume(slovar):
+    zacetek = slovar['od'].split('/')
+    konec = slovar['do'].split('/')
+    niz = slovar['dnevi']
+    dnevi = []
+    i = 0
+    crtice = 0
+    while i < len(niz):
+        if niz[i] == '-':
+            crtice += 1
+        if niz[i].isalpha():
+            if crtice == 0 and niz[i] == 'L':
+                dnevi.append('PON')
+            elif (crtice == 1 or len(dnevi) == 1) and niz[i] == 'M':
+                dnevi.append('TOR')
+            elif (crtice == 2 or len(dnevi) == 2 or (crtice == 1 and len(dnevi) == 1)) and niz[i]=='M':
+                dnevi.append('SRE')
+            elif niz[i] == 'G':
+                dnevi.append('CET')
+            elif niz[i] == 'V':
+                dnevi.append('PET')
+            elif niz[i] == 'S':
+                dnevi.append('SOB')
+            else:
+                dnevi.append('NED')
+        i+=1
+    zacetni_dat = (int(zacetek[0]), int(zacetek[1]), int(zacetek[2]))
+    koncni_dat = (int(konec[0]), int(konec[1]), int(konec[2]))
+    koledar = ustvari_slovar_datumov()
+    for x in koledar :
+        if x[0] == zacetni_dat[0] and x[1] == zacetni_dat[1]:
+            zacetni_indeks = koledar.index(x)
+            print(zacetni_indeks)
+        if x[0] == koncni_dat[0] and x[1] == koncni_dat[1]:
+            koncni_indeks = koledar.index(x)
+            print(koncni_indeks)
+    if zacetni_indeks != koncni_indeks:
+        datumi_letov = []
+        for i in range(zacetni_indeks, koncni_indeks + 1):
+            if koledar[i][3] in dnevi:
+               datumi_letov.append(koledar[i])
+        return datumi_letov
+    else:
+        return koledar[zacetni_indeks]
 
 
 
 
 
-def main(redownload=True, reparse=True):
-    shrani_venezia()
 
-def vsi_leti_bergamo():
-    leti= []
+# def main(redownload=True, reparse=True):
+#     shrani_venezia()
+
+# def vsi_leti_bergamo():
+#     leti= []
+
+dat = f'bergamo/RHO/03.html'
+vsebina = vsebina_datoteke(dat)
+slovar = bvzorec_leta.search(vsebina).groupdict()
+print(slovar)
+ku = {'destinacija': 'Rhodes', 'datum': '26/03/2023', 'druzba': 'Ryanair', 'letalo': 'FR 4201', 'odhod': '05:45', 'prihod': '09:35'}
+
+vedat = f'venezia/100.html'
+vsebin = vsebina_datoteke(vedat)
+leti = najdi_lete(vsebin)
+print(leti)
