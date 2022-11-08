@@ -18,6 +18,7 @@ bergamo.csv :
 
 venezia.csv :
 *  vsebuje podatke o letih v naslednjih 5 mesecih iz Benetk  in sicer za vsak let vsebuje: id-leta, destinacijo, datum in čas leta
+
 Za vsak let pripadajoče letalske družbe in letala pa se nahajajo v datoteki 
 letalska_druzba.csv
 
