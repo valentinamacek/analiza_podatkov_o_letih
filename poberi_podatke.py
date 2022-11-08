@@ -3,9 +3,11 @@ import requests
 import os
 import sys
 import re
+import csv
+import json
 from datetime import datetime
 
-ST_STRANI = 109
+ST_STRANI = 110
 PARI = [('11', '2022'),('12', '2022'), ('01', '2023'), ('02', '2023'), ('03', '2023')]
 vzorec_bloka = re.compile(
     r'<div class="table-responsive">.*?<th>FLIGHT</th>.*?<tbody>(.*?)</tbody>',
@@ -77,16 +79,31 @@ def vsebina_datoteke(ime_datoteke):
     '''Vrne niz z vsebino datoteke z danim imenom.'''
     with open(ime_datoteke, encoding='utf-8') as datoteka:
         return datoteka.read()
+def zapisi_csv(slovarji, imena_polj, ime_datoteke):
+    '''Iz seznama slovarjev ustvari CSV datoteko z glavo.'''
+    pripravi_imenik(ime_datoteke)
+    with open(ime_datoteke, 'w', encoding='utf-8') as csv_datoteka:
+        writer = csv.DictWriter(csv_datoteka, fieldnames=imena_polj)
+        writer.writeheader()
+        writer.writerows(slovarji)
+
+
+def zapisi_json(objekt, ime_datoteke):
+    '''Iz danega objekta ustvari JSON datoteko.'''
+    pripravi_imenik(ime_datoteke)
+    with open(ime_datoteke, 'w', encoding='utf-8') as json_datoteka:
+        json.dump(objekt, json_datoteka, indent=4, ensure_ascii=False)
 
 def shrani_venezia():
     stran = 1
     while True:
         url = f'https://www.veneziaairport.it/en/flights/seasonal-schedule/fdatefrom-30-10-2022/fdateto-25-03-2023/ftype-D/ftframe-alldaylong/page-{stran}.html'
         besedilo = download_url_to_string(url)
-        if najdi_lete(besedilo) == None:
+        if najdi_lete_venezia(besedilo) == None:
             return None
         datoteka = f'venezia/{stran}.html'
         shrani_spletno_stran(url, datoteka)
+        print(stran)
         stran+=1    
 
 def shrani_bergamo():
@@ -109,19 +126,32 @@ def shrani_destinacije_bergamo():
             vsebina = vsebina_datoteke(dat)
             for let_najdba in bvzorec_leta.finditer(vsebina):
                 let = podatki_o_letu_izboljsaj(let_najdba.groupdict())
+                let['datum'] = spremeni_datum(let)
+                print(let)
                 leti.append(let)
-    return leti
+    zapisi_json(leti, 'obdelani_podatki/bergamo.json')
+    zapisi_csv(leti, ['destinacija', 'datum', 'druzba', 'letalo', 'cas'], 'obdelani_podatki/bergamo.csv' )
 
 
-
-def najdi_lete(vsebina_strani):
+def najdi_lete_venezia(vsebina_strani):
     seznam_letov = vzorec_bloka.findall(vsebina_strani)
     if len(seznam_letov)==1:
        leti = []
        for let_podatki in vzorec_leta.finditer(seznam_letov[0]):
             let = let_podatki.groupdict()
-            leti.append(let)
-       return leti
+            izboljsaj = podatki_o_letu_izboljsaj(let)
+            vsi_datumi = razbij_na_datume(izboljsaj)
+            izboljsaj.pop('dnevi')
+            if not isinstance(vsi_datumi, list):
+                izboljsaj['datum'] = vsi_datumi
+                leti.append(izboljsaj)
+            else:
+                for datum in vsi_datumi:
+                    let_tisti_dan = dict(izboljsaj)
+                    let_tisti_dan['datum'] = datum
+                    leti.append(let_tisti_dan)    
+                    print(izboljsaj)    
+            return leti
     else:
         return None
 
@@ -130,9 +160,12 @@ def vsi_leti_venezia():
     for i in range(1, ST_STRANI + 1):
         dat = f'venezia/{i}.html'
         vsebina = vsebina_datoteke(dat)
-        letala = najdi_lete(vsebina)
+        letala = najdi_lete_venezia(vsebina)
         leti.extend(letala)
-    print(leti)
+    zapisi_json(leti, 'obdelani_podatki/venezia.json')
+    zapisi_csv(leti, ['destinacija', 'datum', 'druzba', 'letalo', 'cas', 'od' , 'do'], 'obdelani_podatki/venezia.csv')
+
+
 
 def ustvari_slovar_datumov():
     meseci = [11, 12, 1, 2, 3]
@@ -180,6 +213,17 @@ def podatki_o_letu_izboljsaj(slovar_leta):
     delta = t_prihod - t_odhod
     cas = (int(delta.total_seconds()) // 3600 , int((delta.total_seconds() % 3600) // 60)) 
     slovar_leta['cas'] = f'{cas[0]}:{cas[1]}'
+    slovar_leta.pop('odhod')
+    slovar_leta.pop('prihod')
+    return slovar_leta
+
+def spremeni_datum(bergamo_let):
+    dat = bergamo_let['datum'].split('/')
+    datum = (int(dat[0]), int(dat[1]), int(dat[2]))
+    koledar = ustvari_slovar_datumov()
+    for x in koledar:
+        if x[0] == datum[0] and x[1] == datum[1]:
+            return x
 
 def razbij_na_datume(slovar):
     zacetek = slovar['od'].split('/')
@@ -210,7 +254,9 @@ def razbij_na_datume(slovar):
     zacetni_dat = (int(zacetek[0]), int(zacetek[1]), int(zacetek[2]))
     koncni_dat = (int(konec[0]), int(konec[1]), int(konec[2]))
     koledar = ustvari_slovar_datumov()
-    for x in koledar :
+    zacetni_indeks = 0
+    koncni_indeks = 0
+    for x in koledar:
         if x[0] == zacetni_dat[0] and x[1] == zacetni_dat[1]:
             zacetni_indeks = koledar.index(x)
             print(zacetni_indeks)
@@ -231,19 +277,20 @@ def razbij_na_datume(slovar):
 
 
 
-# def main(redownload=True, reparse=True):
-#     shrani_venezia()
-
+def main(redownload=True, reparse=True):
+    vsi_leti_venezia()
+    shrani_destinacije_bergamo()
 # def vsi_leti_bergamo():
 #     leti= []
-
+main()
 dat = f'bergamo/RHO/03.html'
 vsebina = vsebina_datoteke(dat)
 slovar = bvzorec_leta.search(vsebina).groupdict()
 print(slovar)
 ku = {'destinacija': 'Rhodes', 'datum': '26/03/2023', 'druzba': 'Ryanair', 'letalo': 'FR 4201', 'odhod': '05:45', 'prihod': '09:35'}
 
-vedat = f'venezia/100.html'
-vsebin = vsebina_datoteke(vedat)
-leti = najdi_lete(vsebin)
-print(leti)
+dati = f'venezia/87.html'
+vsebinai = vsebina_datoteke(dati)
+slovari = vzorec_leta.search(vsebinai).groupdict()
+print(slovari)
+# shrani_destinacije_bergamo()
