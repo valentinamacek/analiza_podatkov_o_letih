@@ -12,8 +12,10 @@ Vsak let bo določen z:
 * številko leta / *številkami leta 
 * časom leta
 *- nekatere lete upravlja več letalskih družb skupaj
+
 bergamo.csv :
-*  vsebuje podatke o letih v naslednjih 5 mesecih iz Bergama  in sicer za vsak let vsebuje: id-leta, destinacijo, datum in čas leta,
+*  vsebuje podatke o letih v naslednjih 5 mesecih iz Bergama  in sicer za vsak let vsebuje: id-leta, destinacijo, datum in čas leta
+
 venezia.csv :
 *  vsebuje podatke o letih v naslednjih 5 mesecih iz Benetk  in sicer za vsak let vsebuje: id-leta, destinacijo, datum in čas leta
 Za vsak let pripadajoče letalske družbe in letala pa se nahajajo v datoteki 
