@@ -5,7 +5,7 @@ import sys
 import re
 import csv
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 ST_STRANI = 110
 PARI = [('11', '2022'),('12', '2022'), ('01', '2023'), ('02', '2023'), ('03', '2023')]
@@ -139,22 +139,22 @@ def najdi_lete_venezia(vsebina_strani, id_leta):
        leti = []
        for let_podatki in vzorec_leta.finditer(seznam_letov[0]):
             let = let_podatki.groupdict()
-            izboljsaj = podatki_o_letu_izboljsaj(let)
-            vsi_datumi = razbij_na_datume(izboljsaj)
-            izboljsaj.pop('dnevi')
-            izboljsaj.pop('od')
-            izboljsaj.pop('do')
+            vsi_datumi = razbij_na_datume(let)
+            let.pop('dnevi')
+            let.pop('od')
+            let.pop('do')
             if not isinstance(vsi_datumi, list):
-                izboljsaj['datum'] = f'{vsi_datumi[0]}/{vsi_datumi[1]}/{vsi_datumi[2]}'
-                izboljsaj['id'] = 'v' + f'{id_leta}'
-                leti.append(izboljsaj)
+                let['datum'] = f'{vsi_datumi[0]}/{vsi_datumi[1]}/{vsi_datumi[2]}'
+                let['id'] = 'v' + f'{id_leta}'
+                leti.append(let)
                 id_leta +=1
             else:
                 for datum in vsi_datumi:
-                    let_tisti_dan = dict(izboljsaj)
+                    let_tisti_dan = dict(let)
                     let_tisti_dan['datum'] = f'{datum[0]}/{datum[1]}/{datum[2]}'
                     let_tisti_dan['id'] = 'v' + f'{id_leta}'
-                    leti.append(let_tisti_dan)    
+                    novi = podatki_o_letu_izboljsaj(let_tisti_dan)
+                    leti.append(novi)    
                     id_leta +=1
        return (leti, id_leta)
     else:
@@ -232,13 +232,13 @@ def ustvari_slovar_datumov():
     return datumi
 
 def podatki_o_letu_izboljsaj(slovar_leta):
-    t_odhod = datetime.strptime(slovar_leta['odhod'], "%H:%M")
-    t_prihod = datetime.strptime(slovar_leta['prihod'], "%H:%M")
-    delta = t_prihod - t_odhod
+    t_odhod = datetime.strptime(slovar_leta['datum'] + ' '+ slovar_leta['odhod'], "%d/%m/%Y %H:%M")
+    t_prihod = datetime.strptime(slovar_leta['datum'] +' '+ slovar_leta['prihod'], "%d/%m/%Y %H:%M")
+    if t_prihod < t_odhod:
+        t_prihod = t_prihod + timedelta(days=1)
+    delta = t_prihod - t_odhod 
     cas = (int(delta.total_seconds()) // 3600 , int((delta.total_seconds() % 3600) // 60)) 
     slovar_leta['cas'] = f'{cas[0]}:{cas[1]}'
-    slovar_leta.pop('odhod')
-    slovar_leta.pop('prihod')
     vec_druzb = re.findall(r'(.*?)<br />', slovar_leta['druzba'] + '<br />')
     if len(vec_druzb) > 1:
         slovar_leta['druzba'] = vec_druzb
@@ -299,12 +299,16 @@ vsi_leti_za = []
 benetke_zapisi = []
 for let in benetke:
     vsi_leti_za.append((let['id'], let.pop('druzba'), let.pop('letalo')))
+    let.pop('prihod')
+    let.pop('odhod')
     benetke_zapisi.append(let)
 zapisi_csv(benetke_zapisi, ['id', 'destinacija', 'datum', 'cas'], 'obdelani_podatki/venezia.csv')
 
 bergamo_zapisi = []
 for blet in bergamo:
     vsi_leti_za.append((blet['id'], blet.pop('druzba'), blet.pop('letalo')))
+    blet.pop('prihod')
+    blet.pop('odhod')
     bergamo_zapisi.append(blet)
 zapisi_csv(bergamo_zapisi, ['id','destinacija', 'datum', 'cas'], 'obdelani_podatki/bergamo.csv' )
 izloci_druzbo(vsi_leti_za)
