@@ -127,6 +127,13 @@ def shrani_destinacije_bergamo():
             for let_najdba in bvzorec_leta.finditer(vsebina):
                 let = podatki_o_letu_izboljsaj(let_najdba.groupdict())
                 let['id'] = 'b' + f'{id_leta}'
+                koledar = ustvari_slovar_datumov()
+                datum = let['datum'].split('/')
+                print(datum)
+                for x in koledar:
+                    if x[0] == int(datum[0]) and x[1] == int(datum[1]):
+                        let['dan'] = x[3]
+                        print(let['dan'])
                 leti.append(let)
                 id_leta += 1
     zapisi_json(leti, 'obdelani_podatki/bergamo.json')
@@ -146,12 +153,15 @@ def najdi_lete_venezia(vsebina_strani, id_leta):
             if not isinstance(vsi_datumi, list):
                 let['datum'] = f'{vsi_datumi[0]}/{vsi_datumi[1]}/{vsi_datumi[2]}'
                 let['id'] = 'v' + f'{id_leta}'
-                leti.append(let)
+                let['dan'] = f'{vsi_datumi[3]}'
+                nov = podatki_o_letu_izboljsaj(let)
+                leti.append(nov)
                 id_leta +=1
             else:
                 for datum in vsi_datumi:
                     let_tisti_dan = dict(let)
                     let_tisti_dan['datum'] = f'{datum[0]}/{datum[1]}/{datum[2]}'
+                    let_tisti_dan['dan'] = f'{datum[3]}'
                     let_tisti_dan['id'] = 'v' + f'{id_leta}'
                     novi = podatki_o_letu_izboljsaj(let_tisti_dan)
                     leti.append(novi)    
@@ -176,7 +186,7 @@ def vsi_leti_venezia():
 def izloci_druzbo(leti):
     id_druzba_let = []
     for let in leti:
-        slovar = {'let': let[0]}
+        slovar = {'id': let[0]}
         if isinstance(let[1], list):
             for druzba, letalo in zip(let[1], let[2]):
                 posz_slovar = slovar.copy()
@@ -187,7 +197,7 @@ def izloci_druzbo(leti):
             slovar['druzba'] = let[1]
             slovar['letalo'] = let[2]
             id_druzba_let.append(slovar)
-    zapisi_csv(id_druzba_let, ['let', 'druzba', 'letalo'], 'obdelani_podatki/letalska_druzba.csv')
+    zapisi_csv(id_druzba_let, ['id', 'druzba', 'letalo'], 'obdelani_podatki/letalska_druzba.csv')
 
 
 
@@ -302,7 +312,7 @@ for let in benetke:
     let.pop('prihod')
     let.pop('odhod')
     benetke_zapisi.append(let)
-zapisi_csv(benetke_zapisi, ['id', 'destinacija', 'datum', 'cas'], 'obdelani_podatki/venezia.csv')
+zapisi_csv(benetke_zapisi, ['id', 'destinacija', 'datum','dan', 'cas'], 'obdelani_podatki/venezia.csv')
 
 bergamo_zapisi = []
 for blet in bergamo:
@@ -310,7 +320,7 @@ for blet in bergamo:
     blet.pop('prihod')
     blet.pop('odhod')
     bergamo_zapisi.append(blet)
-zapisi_csv(bergamo_zapisi, ['id','destinacija', 'datum', 'cas'], 'obdelani_podatki/bergamo.csv' )
+zapisi_csv(bergamo_zapisi, ['id','destinacija', 'datum','dan', 'cas'], 'obdelani_podatki/bergamo.csv' )
 izloci_druzbo(vsi_leti_za)
 
 
