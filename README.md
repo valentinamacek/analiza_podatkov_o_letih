@@ -14,17 +14,20 @@ Vsak let bo določen z:
 *- nekatere lete upravlja več letalskih družb skupaj
 
 bergamo.csv :
-*  vsebuje podatke o letih v naslednjih 5 mesecih iz Bergama  in sicer za vsak let vsebuje: id-leta, destinacijo, datum in čas leta
+*  vsebuje podatke o letih v obdobju od novembra 2022 do marca 2023 iz Bergama in sicer za vsak let vsebuje: id-leta, destinacijo, datum in čas leta
 
 venezia.csv :
-*  vsebuje podatke o letih v naslednjih 5 mesecih iz Benetk  in sicer za vsak let vsebuje: id-leta, destinacijo, datum in čas leta
+*  vsebuje podatke o letih v obdobju od novembra 2022 do marca 2023 iz Benetk  in sicer za vsak let vsebuje: id-leta, destinacijo, datum in čas leta
 
 Za vsak let pripadajoče letalske družbe in letala pa se nahajajo v datoteki 
 letalska_druzba.csv
 
 ## Delovne hipoteze:
-* Ali je res, da je več letov ob koncu leta (za čas praznikov)?k
-* Kateri dan v tednu je največ letov?k
-* Katero od letališč ponuja več destinacij in kateri ima večje število letov na teden kot drugi?
-* Katero letališče ima več letov v Severno Ameriko?n
-* Ali so najbolj pogosti notranji leti (znotraj Italije)?k
+* Več letov je v obdobju praznikov (zadnji teden leta 2022 in prvi teden 2023).
+* Največje število letov po državah iz letališča Marco Polo je v Italijo.
+* Največ letov iz beneškega letališča je v soboto.
+* V soboto je največja razlika v številu letov med letališčema.
+* Ryanair predstavlja več kot polovico vseh letov iz Bergama.
+* Največ letov iz obeh letališč je v eno izmed italijanskih letališč.
+* Benetke imajo več direktnih letov v Severno Ameriko.
+* Svetovno nogometno prvenstvo je vplivalo na število letov v Katar.
