@@ -23,8 +23,8 @@ Za vsak let pripadajoče letalske družbe in letala pa se nahajajo v datoteki
 letalska_druzba.csv
 
 ## Delovne hipoteze:
-* Ali je res, da je več letov ob koncu leta (za čas praznikov)?
-* Kateri dan v tednu je največ letov?
+* Ali je res, da je več letov ob koncu leta (za čas praznikov)?k
+* Kateri dan v tednu je največ letov?k
 * Katero od letališč ponuja več destinacij in kateri ima večje število letov na teden kot drugi?
-* Katero letališče ima več letov v Severno Ameriko?
-* Ali so najbolj pogosti notranji leti (znotraj Italije)?
+* Katero letališče ima več letov v Severno Ameriko?n
+* Ali so najbolj pogosti notranji leti (znotraj Italije)?k
